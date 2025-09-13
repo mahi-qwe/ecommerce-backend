@@ -62,6 +62,12 @@ func main() {
 	}
 	log.Println("✅ Order table migrated successfully")
 
+	err = config.DB.AutoMigrate(&models.OrderItem{})
+	if err != nil {
+		log.Fatal("Migration failed for OrderItem table: ", err)
+	}
+	log.Println("✅ OrderItem table migrated successfully")
+
 	// Init Gin
 	r := gin.Default()
 
