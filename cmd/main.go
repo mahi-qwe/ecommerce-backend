@@ -44,6 +44,12 @@ func main() {
 	}
 	log.Println("✅ ProductProduction table migrated successfully")
 
+	err = config.DB.AutoMigrate(&models.CartItem{})
+	if err != nil {
+		log.Fatal("Migration failed for CartItem table: ", err)
+	}
+	log.Println("✅ CartItem table migrated successfully")
+
 	// Init Gin
 	r := gin.Default()
 
