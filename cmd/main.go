@@ -24,6 +24,13 @@ func main() {
 	if err != nil {
 		log.Fatal("Migration failed: ", err)
 	}
+	log.Println("✅ Users table migrated successfully")
+
+	err = config.DB.AutoMigrate(&models.OTP{})
+	if err != nil {
+		log.Fatal("Migration failed for OTP table: ", err)
+	}
+	log.Println("✅ OTP table migrated successfully")
 
 	// Init Gin
 	r := gin.Default()
