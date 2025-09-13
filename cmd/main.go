@@ -50,6 +50,12 @@ func main() {
 	}
 	log.Println("✅ CartItem table migrated successfully")
 
+	err = config.DB.AutoMigrate(&models.WishlistItem{})
+	if err != nil {
+		log.Fatal("Migration failed for WishlistItem table: ", err)
+	}
+	log.Println("✅ WishlistItem table migrated successfully")
+
 	// Init Gin
 	r := gin.Default()
 
