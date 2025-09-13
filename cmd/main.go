@@ -32,6 +32,12 @@ func main() {
 	}
 	log.Println("✅ OTP table migrated successfully")
 
+	err = config.DB.AutoMigrate(&models.Product{})
+	if err != nil {
+		log.Fatal("Migration failed for Product table: ", err)
+	}
+	log.Println("✅ Product table migrated successfully")
+
 	// Init Gin
 	r := gin.Default()
 
