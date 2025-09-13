@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/mahi-qwe/ecommerce-backend/config" // import from root module
+	"github.com/mahi-qwe/ecommerce-backend/models"
 )
 
 func main() {
@@ -17,6 +18,12 @@ func main() {
 
 	// Connect DB
 	config.ConnectDatabase()
+
+	// Use = instead of := to reuse err
+	err = config.DB.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatal("Migration failed: ", err)
+	}
 
 	// Init Gin
 	r := gin.Default()
