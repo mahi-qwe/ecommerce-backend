@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mahi-qwe/ecommerce-backend/config"
 	"github.com/mahi-qwe/ecommerce-backend/models"
+	"github.com/mahi-qwe/ecommerce-backend/routes"
 )
 
 func main() {
@@ -23,6 +24,8 @@ func main() {
 
 	// Init Gin
 	r := gin.Default()
+
+	routes.AuthRoutes(r)
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
