@@ -5,68 +5,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/mahi-qwe/ecommerce-backend/config" // import from root module
+	"github.com/mahi-qwe/ecommerce-backend/config"
 	"github.com/mahi-qwe/ecommerce-backend/models"
 )
 
 func main() {
 	// Load env
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
 	// Connect DB
 	config.ConnectDatabase()
 
-	// Use = instead of := to reuse err
-	err = config.DB.AutoMigrate(&models.User{})
-	if err != nil {
-		log.Fatal("Migration failed: ", err)
-	}
-	log.Println("✅ Users table migrated successfully")
-
-	err = config.DB.AutoMigrate(&models.OTP{})
-	if err != nil {
-		log.Fatal("Migration failed for OTP table: ", err)
-	}
-	log.Println("✅ OTP table migrated successfully")
-
-	err = config.DB.AutoMigrate(&models.Product{})
-	if err != nil {
-		log.Fatal("Migration failed for Product table: ", err)
-	}
-	log.Println("✅ Product table migrated successfully")
-
-	err = config.DB.AutoMigrate(&models.ProductProduction{})
-	if err != nil {
-		log.Fatal("Migration failed for ProductProduction table: ", err)
-	}
-	log.Println("✅ ProductProduction table migrated successfully")
-
-	err = config.DB.AutoMigrate(&models.CartItem{})
-	if err != nil {
-		log.Fatal("Migration failed for CartItem table: ", err)
-	}
-	log.Println("✅ CartItem table migrated successfully")
-
-	err = config.DB.AutoMigrate(&models.WishlistItem{})
-	if err != nil {
-		log.Fatal("Migration failed for WishlistItem table: ", err)
-	}
-	log.Println("✅ WishlistItem table migrated successfully")
-
-	err = config.DB.AutoMigrate(&models.Order{})
-	if err != nil {
-		log.Fatal("Migration failed for Order table: ", err)
-	}
-	log.Println("✅ Order table migrated successfully")
-
-	err = config.DB.AutoMigrate(&models.OrderItem{})
-	if err != nil {
-		log.Fatal("Migration failed for OrderItem table: ", err)
-	}
-	log.Println("✅ OrderItem table migrated successfully")
+	// Run migrations
+	models.Migrate()
 
 	// Init Gin
 	r := gin.Default()
