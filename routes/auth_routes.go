@@ -10,5 +10,6 @@ func AuthRoutes(r *gin.Engine) {
 	{
 		auth.POST("/signup", controllers.SignupHandler)
 		// next: login, send-otp, verify-otp will be here
+		auth.POST("/login", controllers.LoginHandler)
 	}
 }
