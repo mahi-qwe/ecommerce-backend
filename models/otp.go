@@ -8,5 +8,6 @@ type OTP struct {
 	OTPCode   string    `gorm:"type:varchar(10);not null" json:"otp_code"`
 	ExpiresAt time.Time `gorm:"not null" json:"expires_at"`
 	Purpose   string    `gorm:"type:varchar(50);not null" json:"purpose"`
+	IsUsed    bool      `gorm:"default:false;not null" json:"is_used"` // ✅ new
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 }

@@ -9,7 +9,8 @@ func AuthRoutes(r *gin.Engine) {
 	auth := r.Group("/auth")
 	{
 		auth.POST("/signup", controllers.SignupHandler)
-		// next: login, send-otp, verify-otp will be here
 		auth.POST("/login", controllers.LoginHandler)
+		auth.POST("/send-otp", controllers.SendOTPHandler)
+		auth.POST("/verify-otp", controllers.VerifyOTPHandler)
 	}
 }

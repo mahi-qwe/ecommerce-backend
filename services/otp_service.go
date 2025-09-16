@@ -10,69 +10,83 @@ import (
 	"github.com/mahi-qwe/ecommerce-backend/models"
 )
 
-// GenerateOTP creates a random numeric OTP, stores it in DB with expiry
-func GenerateOTP(userID uint, purpose string) (string, error) {
-	// 1. Generate a random 6-digit OTP
+// GenerateOTP creates, stores, and emails a 6-digit OTP
+func GenerateOTP(userID uint, email, purpose string) (string, error) {
 	otp, err := generateRandomOTP(6)
 	if err != nil {
 		return "", err
 	}
 
-	// 2. Expiration = 5 minutes from now
-	expiresAt := time.Now().Add(5 * time.Minute)
-
-	// 3. Save to DB
 	otpEntry := models.OTP{
 		UserID:    userID,
 		OTPCode:   otp,
 		Purpose:   purpose,
-		ExpiresAt: expiresAt,
+		ExpiresAt: time.Now().Add(5 * time.Minute),
 		CreatedAt: time.Now(),
+		IsUsed:    false,
 	}
 
 	if err := config.DB.Create(&otpEntry).Error; err != nil {
 		return "", err
 	}
 
+	subject := "Your OTP Code"
+	body := fmt.Sprintf("Your OTP for %s is: %s. It expires in 5 minutes.", purpose, otp)
+
+	if err := SendEmail(email, subject, body); err != nil {
+		return "", fmt.Errorf("failed to send OTP email: %w", err)
+	}
+
 	return otp, nil
 }
 
-// ValidateOTP checks if OTP exists, not expired, and matches
-func ValidateOTP(userID uint, otp string, purpose string) (bool, error) {
-	var otpEntry models.OTP
-
-	// Find OTP by userID + purpose
-	err := config.DB.Where("user_id = ? AND purpose = ?", userID, purpose).
-		Order("created_at DESC"). // in case multiple
-		First(&otpEntry).Error
+// ValidateOTP checks OTP validity and marks it used
+func ValidateOTP(userID uint, otp, purpose string) (bool, error) {
+	var entry models.OTP
+	err := config.DB.Where("user_id = ? AND purpose = ? AND is_used = ?", userID, purpose, false).
+		Order("created_at DESC").
+		First(&entry).Error
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("otp not found or already used")
 	}
 
-	// Check expiry
-	// Check expiry
-	if time.Now().After(otpEntry.ExpiresAt) {
+	if time.Now().After(entry.ExpiresAt) {
 		return false, fmt.Errorf("otp expired")
 	}
 
-	// Check code
-	if otpEntry.OTPCode != otp {
+	if entry.OTPCode != otp {
 		return false, fmt.Errorf("invalid otp")
+	}
+
+	entry.IsUsed = true
+	if err := config.DB.Save(&entry).Error; err != nil {
+		return false, fmt.Errorf("failed to update otp status: %w", err)
+	}
+
+	// For signup OTPs, mark user as verified
+	if purpose == "signup" {
+		if err := config.DB.Model(&models.User{}).
+			Where("id = ?", userID).
+			Update("is_verified", true).Error; err != nil {
+			return false, fmt.Errorf("failed to verify user: %w", err)
+		}
 	}
 
 	return true, nil
 }
 
-// Utility: Generate random numeric OTP
+// generateRandomOTP returns a numeric OTP of given length
 func generateRandomOTP(length int) (string, error) {
 	const digits = "0123456789"
-	otp := ""
-	for i := 0; i < length; i++ {
+	otp := make([]byte, length)
+
+	for i := range otp {
 		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(digits))))
 		if err != nil {
 			return "", err
 		}
-		otp += string(digits[n.Int64()])
+		otp[i] = digits[n.Int64()]
 	}
-	return otp, nil
+
+	return string(otp), nil
 }

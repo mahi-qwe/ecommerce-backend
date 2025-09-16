@@ -7,27 +7,31 @@ import (
 )
 
 // SendEmail sends a plain-text email
-func SendEmail(to string, subject string, body string) error {
+func SendEmail(to, subject, body string) error {
 	from := os.Getenv("SMTP_USER")
 	password := os.Getenv("SMTP_PASS")
-
-	// Setup SMTP server
 	host := os.Getenv("SMTP_HOST")
 	port := os.Getenv("SMTP_PORT")
+
+	if from == "" || password == "" || host == "" || port == "" {
+		return fmt.Errorf("smtp config missing in .env")
+	}
+
 	addr := host + ":" + port
 
 	// Message format
 	msg := []byte("To: " + to + "\r\n" +
 		"Subject: " + subject + "\r\n" +
+		"MIME-Version: 1.0\r\n" +
+		"Content-Type: text/plain; charset=\"utf-8\"\r\n" +
 		"\r\n" +
 		body + "\r\n")
 
 	// Auth
 	auth := smtp.PlainAuth("", from, password, host)
 
-	// Send
-	err := smtp.SendMail(addr, auth, from, []string{to}, msg)
-	if err != nil {
+	// Send mail
+	if err := smtp.SendMail(addr, auth, from, []string{to}, msg); err != nil {
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 

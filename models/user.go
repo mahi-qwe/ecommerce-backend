@@ -13,6 +13,7 @@ type User struct {
 	PasswordHash string         `gorm:"type:varchar(255);not null" json:"-"`
 	Role         string         `gorm:"type:varchar(50);default:user;not null" json:"role"`
 	IsBlocked    bool           `gorm:"default:false;not null" json:"is_blocked"`
+	IsVerified   bool           `gorm:"default:false;not null" json:"is_verified"` // ✅ new
 	AvatarURL    *string        `gorm:"type:text" json:"avatar_url,omitempty"`
 	CreatedAt    time.Time      `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt    time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
