@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/mahi-qwe/ecommerce-backend/config"
+	"github.com/mahi-qwe/ecommerce-backend/middlewares"
 	"github.com/mahi-qwe/ecommerce-backend/models"
 	"github.com/mahi-qwe/ecommerce-backend/routes"
 )
@@ -23,6 +24,8 @@ func main() {
 	models.Migrate()
 
 	r := gin.Default()
+
+	r.Use(middlewares.CORSMiddleware())
 
 	routes.AuthRoutes(r)
 
