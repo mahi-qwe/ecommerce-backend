@@ -28,6 +28,7 @@ func main() {
 	r.Use(middlewares.CORSMiddleware())
 
 	routes.AuthRoutes(r)
+	routes.UserRoutes(r)
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{

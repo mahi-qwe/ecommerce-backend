@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -28,4 +29,29 @@ func GenerateJWT(userID int, role string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
+}
+
+func ValidateJWT(tokenStr string) (int, error) {
+	secret := os.Getenv("JWT_SECRET")
+
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// Validate signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		userIDFloat, ok := claims["userId"].(float64)
+		if !ok {
+			return 0, fmt.Errorf("invalid token claims")
+		}
+		return int(userIDFloat), nil
+	}
+
+	return 0, fmt.Errorf("invalid token")
 }
