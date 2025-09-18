@@ -110,6 +110,83 @@ func LoginHandler(c *gin.Context) {
 	})
 }
 
+// ForgotPasswordHandler sends OTP for password reset
+func ForgotPasswordHandler(c *gin.Context) {
+	var input struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var user models.User
+	if err := config.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Generate OTP for password reset
+	if _, err := services.GenerateOTP(user.ID, user.Email, "reset_password"); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate/send OTP"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "OTP sent to your email for password reset",
+	})
+}
+
+// ResetPasswordHandler validates OTP and updates password
+func ResetPasswordHandler(c *gin.Context) {
+	var input struct {
+		Email       string `json:"email" binding:"required,email"`
+		OTP         string `json:"otp" binding:"required"`
+		NewPassword string `json:"new_password" binding:"required,min=6"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var user models.User
+	if err := config.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Validate OTP
+	valid, err := services.ValidateOTP(user.ID, input.OTP, "reset_password")
+	if err != nil || !valid {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Hash new password
+	hashedPassword, err := utils.HashPassword(input.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash new password"})
+		return
+	}
+
+	// Update password and updated_at
+	if err := config.DB.Model(&user).Updates(map[string]interface{}{
+		"password_hash": hashedPassword,
+		"updated_at":    time.Now(),
+	}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reset password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Password reset successfully",
+	})
+}
+
 // VerifyOTPHandler verifies the OTP sent to user's email
 func VerifyOTPHandler(c *gin.Context) {
 	var input struct {
