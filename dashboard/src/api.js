@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080/api", // change if your backend runs on different port
+  baseURL: "http://localhost:8080", // change if your backend runs on different port
 });
 
 // Add JWT token to every request if available

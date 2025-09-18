@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Header() {
@@ -5,7 +6,7 @@ export default function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem("token"); // clear JWT
-    navigate("/login"); // go back to login
+    navigate("/"); // go back to login
   };
 
   return (
