@@ -31,7 +31,9 @@ func GetProfileHandler(c *gin.Context) {
 		"user": gin.H{
 			"full_name":   user.FullName,
 			"email":       user.Email,
+			"address":     user.Address, // ✅ include address
 			"is_verified": user.IsVerified,
+			"avatar_url":  user.AvatarURL, // optional: good to show profile picture
 		},
 	})
 }
@@ -45,11 +47,12 @@ func UpdateProfileHandler(c *gin.Context) {
 	}
 	userID := userIDRaw.(int)
 
-	// Only allow safe fields
+	// Allow safe fields
 	var input struct {
 		FullName  string `json:"full_name"`
 		Password  string `json:"password"`
 		AvatarURL string `json:"avatar_url"`
+		Address   string `json:"address"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -65,6 +68,10 @@ func UpdateProfileHandler(c *gin.Context) {
 
 	if input.AvatarURL != "" {
 		updates["avatar_url"] = input.AvatarURL
+	}
+
+	if input.Address != "" {
+		updates["address"] = input.Address
 	}
 
 	if input.Password != "" {

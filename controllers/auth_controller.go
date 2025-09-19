@@ -17,6 +17,7 @@ func SignupHandler(c *gin.Context) {
 		FullName string `json:"full_name" binding:"required"`
 		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required,min=6"`
+		Address  string `json:"address"` // ✅ new field
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -42,6 +43,7 @@ func SignupHandler(c *gin.Context) {
 		FullName:     input.FullName,
 		Email:        input.Email,
 		PasswordHash: hashedPassword,
+		Address:      input.Address, // ✅ save address
 		Role:         "user",
 		IsVerified:   false, // Not verified yet
 		CreatedAt:    time.Now(),
@@ -108,7 +110,7 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	// Save hashed refresh token in DB
-	expiresAt := time.Now().Add(7 * 24 * time.Hour) // 7 days
+	expiresAt := time.Now().Add(time.Minute * 5) // 5 minutes
 	if err := utils.SaveRefreshToken(config.DB, user.ID, hashedToken, expiresAt); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save refresh token"})
 		return
@@ -118,8 +120,8 @@ func LoginHandler(c *gin.Context) {
 	c.SetCookie(
 		"refresh_token",
 		refreshToken,
-		int(time.Until(expiresAt).Seconds()), // <--- use time.Until
-		"/",
+		int(time.Until(expiresAt).Seconds()),
+		"/", // path
 		"",
 		false,
 		true,
@@ -320,5 +322,42 @@ func SendOTPHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "OTP sent successfully",
+	})
+}
+
+// ResendOTPHandler regenerates and resends an OTP for signup or password reset/forget password
+func ResendOTPHandler(c *gin.Context) {
+	var input struct {
+		Email   string `json:"email" binding:"required,email"`
+		Purpose string `json:"purpose" binding:"required"` // "signup" or "reset_password"
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Find user
+	var user models.User
+	if err := config.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// If purpose is signup but user already verified
+	if input.Purpose == "signup" && user.IsVerified {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User already verified"})
+		return
+	}
+
+	// Generate new OTP
+	if _, err := services.GenerateOTP(user.ID, user.Email, input.Purpose); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate OTP"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "OTP resent successfully. Please check your email.",
 	})
 }
