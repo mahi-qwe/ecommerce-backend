@@ -14,5 +14,9 @@ func AuthRoutes(r *gin.Engine) {
 		auth.POST("/verify-otp", controllers.VerifyOTPHandler)
 		auth.POST("/forgot-password", controllers.ForgotPasswordHandler)
 		auth.POST("/reset-password", controllers.ResetPasswordHandler)
+
+		// New refresh token endpoints
+		auth.POST("/refresh", controllers.RefreshTokenHandler)
+		auth.POST("/logout", controllers.LogoutHandler)
 	}
 }

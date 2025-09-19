@@ -15,6 +15,7 @@ type User struct {
 	IsBlocked    bool           `gorm:"default:false;not null" json:"is_blocked"`
 	IsVerified   bool           `gorm:"default:false;not null" json:"is_verified"` // ✅ new
 	AvatarURL    *string        `gorm:"type:text" json:"avatar_url,omitempty"`
+	Address      string         `gorm:"type:text" json:"address"`
 	CreatedAt    time.Time      `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt    time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"` // soft delete

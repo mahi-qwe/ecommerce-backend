@@ -77,36 +77,108 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	// Find user by email
 	var user models.User
 	if err := config.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
-	// Block if not verified
 	if !user.IsVerified {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Please verify your email before login"})
 		return
 	}
 
-	// Check password
 	if !utils.CheckPasswordHash(input.Password, user.PasswordHash) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
-	// Generate JWT
-	token, err := utils.GenerateJWT(int(user.ID), user.Role)
+	// Generate JWT access token
+	accessToken, err := utils.GenerateJWT(int(user.ID), user.Role)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating access token"})
+		return
+	}
+
+	// Generate refresh token
+	refreshToken, hashedToken, err := utils.GenerateRefreshToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating refresh token"})
+		return
+	}
+
+	// Save hashed refresh token in DB
+	expiresAt := time.Now().Add(7 * 24 * time.Hour) // 7 days
+	if err := utils.SaveRefreshToken(config.DB, user.ID, hashedToken, expiresAt); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save refresh token"})
+		return
+	}
+
+	// Set refresh token as HTTP-only cookie
+	c.SetCookie(
+		"refresh_token",
+		refreshToken,
+		int(time.Until(expiresAt).Seconds()), // <--- use time.Until
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":       "success",
+		"userId":       user.ID,
+		"access_token": accessToken,
+	})
+}
+
+func RefreshTokenHandler(c *gin.Context) {
+	// Get refresh token from cookie
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token required"})
+		return
+	}
+
+	rt, err := utils.ValidateRefreshToken(config.DB, refreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
+		return
+	}
+
+	// Generate new access token
+	accessToken, err := utils.GenerateJWT(int(rt.UserID), "user") // replace "user" with actual role if needed
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating access token"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"userId": user.ID,
-		"token":  token,
+		"status":       "success",
+		"access_token": accessToken,
+	})
+}
+
+func LogoutHandler(c *gin.Context) {
+	// Get refresh token from cookie
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token required"})
+		return
+	}
+
+	// Delete token from DB
+	if err := utils.DeleteRefreshToken(config.DB, refreshToken); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not logout"})
+		return
+	}
+
+	// Clear cookie
+	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Logged out successfully",
 	})
 }
 

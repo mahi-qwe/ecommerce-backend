@@ -16,6 +16,7 @@ func Migrate() {
 		&WishlistItem{},
 		&Order{},
 		&OrderItem{},
+		&RefreshToken{},
 	)
 
 	if err != nil {
