@@ -25,17 +25,13 @@ func GetProfileHandler(c *gin.Context) {
 		return
 	}
 
-	// Return user data (omit password)
+	// Only return safe fields
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"user": gin.H{
-			"id":          user.ID,
 			"full_name":   user.FullName,
 			"email":       user.Email,
-			"role":        user.Role,
 			"is_verified": user.IsVerified,
-			"created_at":  user.CreatedAt,
-			"updated_at":  user.UpdatedAt,
 		},
 	})
 }
@@ -49,9 +45,11 @@ func UpdateProfileHandler(c *gin.Context) {
 	}
 	userID := userIDRaw.(int)
 
+	// Only allow safe fields
 	var input struct {
-		FullName string `json:"full_name"`
-		Password string `json:"password"`
+		FullName  string `json:"full_name"`
+		Password  string `json:"password"`
+		AvatarURL string `json:"avatar_url"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -59,12 +57,14 @@ func UpdateProfileHandler(c *gin.Context) {
 		return
 	}
 
-	updates := map[string]interface{}{
-		"updated_at": time.Now(),
-	}
+	updates := map[string]interface{}{}
 
 	if input.FullName != "" {
 		updates["full_name"] = input.FullName
+	}
+
+	if input.AvatarURL != "" {
+		updates["avatar_url"] = input.AvatarURL
 	}
 
 	if input.Password != "" {
@@ -76,7 +76,18 @@ func UpdateProfileHandler(c *gin.Context) {
 		updates["password_hash"] = hashedPassword
 	}
 
-	if err := config.DB.Model(&models.User{}).Where("id = ?", userID).Updates(updates).Error; err != nil {
+	// If nothing to update
+	if len(updates) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No valid fields to update"})
+		return
+	}
+
+	// Update timestamp
+	updates["updated_at"] = time.Now()
+
+	if err := config.DB.Model(&models.User{}).
+		Where("id = ?", userID).
+		Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
 		return
 	}
