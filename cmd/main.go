@@ -29,6 +29,7 @@ func main() {
 
 	routes.AuthRoutes(r)
 	routes.UserRoutes(r)
+	routes.AdminRoutes(r)
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
