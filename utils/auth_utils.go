@@ -39,7 +39,8 @@ func GenerateJWT(userID int, role string) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-func ValidateJWT(tokenStr string) (int, error) {
+// ValidateJWT validates token and returns userId + role
+func ValidateJWT(tokenStr string) (int, string, error) {
 	secret := os.Getenv("JWT_SECRET")
 
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
@@ -50,18 +51,26 @@ func ValidateJWT(tokenStr string) (int, error) {
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// Extract userId
 		userIDFloat, ok := claims["userId"].(float64)
 		if !ok {
-			return 0, fmt.Errorf("invalid token claims")
+			return 0, "", fmt.Errorf("invalid userId in token")
 		}
-		return int(userIDFloat), nil
+
+		// Extract role
+		role, ok := claims["role"].(string)
+		if !ok {
+			return 0, "", fmt.Errorf("invalid role in token")
+		}
+
+		return int(userIDFloat), role, nil
 	}
 
-	return 0, fmt.Errorf("invalid token")
+	return 0, "", fmt.Errorf("invalid token")
 }
 
 // ------------------ Refresh Token Functions ------------------

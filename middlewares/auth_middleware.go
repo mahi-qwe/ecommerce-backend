@@ -8,7 +8,7 @@ import (
 	"github.com/mahi-qwe/ecommerce-backend/utils"
 )
 
-// AuthMiddleware checks JWT token and sets userID in context
+// AuthMiddleware checks JWT token and sets userID + role in context
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -19,15 +19,17 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-		userID, err := utils.ValidateJWT(tokenStr)
+		userID, role, err := utils.ValidateJWT(tokenStr)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			c.Abort()
 			return
 		}
 
-		// Set userID in context
+		// Set userID and role in context (so AdminMiddleware can use it)
 		c.Set("userID", userID)
+		c.Set("role", role)
+
 		c.Next()
 	}
 }
