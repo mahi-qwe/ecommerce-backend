@@ -43,3 +43,18 @@ func GetProductsHandler(c *gin.Context) {
 		"products": products,
 	})
 }
+
+// GetProductByIDHandler handles GET /products/:id
+func GetProductByIDHandler(c *gin.Context) {
+	var product models.Product
+	id := c.Param("id")
+
+	if err := config.DB.First(&product, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"product": product,
+	})
+}

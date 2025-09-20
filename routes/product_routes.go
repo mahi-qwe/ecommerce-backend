@@ -16,6 +16,7 @@ func ProductRoutes(r *gin.Engine) {
 	// Public routes
 	public := r.Group("/products")
 	{
-		public.GET("", controllers.GetProductsHandler) // GET /products
+		public.GET("", controllers.GetProductsHandler)        // GET /products
+		public.GET("/:id", controllers.GetProductByIDHandler) // GET /products/:id
 	}
 }
