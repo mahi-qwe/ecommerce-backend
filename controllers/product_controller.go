@@ -29,3 +29,17 @@ func CreateProductHandler(c *gin.Context) {
 		"product": input,
 	})
 }
+
+// GetProductsHandler handles GET /products (public)
+func GetProductsHandler(c *gin.Context) {
+	var products []models.Product
+
+	if err := config.DB.Find(&products).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch products"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"products": products,
+	})
+}

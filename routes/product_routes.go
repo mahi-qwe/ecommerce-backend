@@ -12,4 +12,10 @@ func ProductRoutes(r *gin.Engine) {
 	{
 		admin.POST("/products", controllers.CreateProductHandler)
 	}
+
+	// Public routes
+	public := r.Group("/products")
+	{
+		public.GET("", controllers.GetProductsHandler) // GET /products
+	}
 }
