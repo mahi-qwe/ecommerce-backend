@@ -126,3 +126,25 @@ func UpdateProductHandler(c *gin.Context) {
 		"product": product,
 	})
 }
+
+// DeleteProductHandler handles DELETE /admin/products/:id
+func DeleteProductHandler(c *gin.Context) {
+	var product models.Product
+	id := c.Param("id")
+
+	// Check if product exists
+	if err := config.DB.First(&product, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		return
+	}
+
+	// Soft delete product
+	if err := config.DB.Delete(&product).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Product deleted successfully",
+	})
+}
