@@ -74,3 +74,19 @@ func BlockUserHandler(c *gin.Context) {
 		"message": "User blocked successfully",
 	})
 }
+
+func UnblockUserHandler(c *gin.Context) {
+	userID := c.Param("id")
+
+	if err := config.DB.Model(&models.User{}).
+		Where("id = ?", userID).
+		Update("is_blocked", false).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unblock user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "User unblocked successfully",
+	})
+}

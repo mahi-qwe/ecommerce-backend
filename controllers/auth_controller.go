@@ -90,6 +90,11 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
+	if user.IsBlocked {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Your account has been blocked. Please contact support."})
+		return
+	}
+
 	if !utils.CheckPasswordHash(input.Password, user.PasswordHash) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return

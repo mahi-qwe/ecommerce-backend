@@ -11,6 +11,7 @@ func AdminRoutes(r *gin.Engine) {
 	admin.Use(middlewares.AuthMiddleware(), middlewares.AdminMiddleware()) // protect with JWT + admin role
 	{
 		admin.PUT("/users/:id", controllers.UpdateUserHandler)
-		admin.PUT("/users/:id/block", controllers.BlockUserHandler)
+		admin.POST("/users/:id/block", controllers.BlockUserHandler)
+		admin.POST("/users/:id/unblock", controllers.UnblockUserHandler)
 	}
 }
