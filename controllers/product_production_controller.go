@@ -101,3 +101,22 @@ func UpdateProductionStatusHandler(c *gin.Context) {
 		"production": production,
 	})
 }
+
+// GetProductionDetailsHandler handles GET /admin/products/:id/production
+func GetProductionDetailsHandler(c *gin.Context) {
+	productID := c.Param("id")
+
+	var production models.ProductProduction
+	if err := config.DB.
+		Preload("Product").
+		Where("product_id = ?", productID).
+		First(&production).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Production record not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     "success",
+		"production": production,
+	})
+}

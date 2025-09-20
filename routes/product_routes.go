@@ -15,6 +15,7 @@ func ProductRoutes(r *gin.Engine) {
 		admin.DELETE("/products/:id", controllers.DeleteProductHandler)                         // DELETE /admin/products/:id
 		admin.POST("/products/:id/production", controllers.StartProductionHandler)              // POST /admin/products/:id/production
 		admin.PUT("/products/:id/production/status", controllers.UpdateProductionStatusHandler) // PUT /admin/products/:id/production/status
+		admin.GET("/products/:id/production", controllers.GetProductionDetailsHandler)
 	}
 
 	// Public routes
