@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mahi-qwe/ecommerce-backend/config"
@@ -55,6 +56,73 @@ func GetProductByIDHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"product": product,
+	})
+}
+
+// UpdateProductHandler handles PUT /admin/products/:id
+func UpdateProductHandler(c *gin.Context) {
+	var product models.Product
+	id := c.Param("id")
+
+	// Check if product exists
+	if err := config.DB.First(&product, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		return
+	}
+
+	// Bind JSON input
+	var input struct {
+		Name          *string  `json:"name"`
+		Description   *string  `json:"description"`
+		Price         *float64 `json:"price"`
+		StockQuantity *int     `json:"stock_quantity"`
+		Category      *string  `json:"category"`
+		ImageURL      *string  `json:"image_url"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	updates := map[string]interface{}{}
+
+	if input.Name != nil {
+		updates["name"] = *input.Name
+	}
+	if input.Description != nil {
+		updates["description"] = *input.Description
+	}
+	if input.Price != nil {
+		updates["price"] = *input.Price
+	}
+	if input.StockQuantity != nil {
+		updates["stock_quantity"] = *input.StockQuantity
+	}
+	if input.Category != nil {
+		updates["category"] = *input.Category
+	}
+	if input.ImageURL != nil {
+		updates["image_url"] = *input.ImageURL
+	}
+
+	// Nothing to update
+	if len(updates) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No valid fields to update"})
+		return
+	}
+
+	// Update timestamp
+	updates["updated_at"] = time.Now()
+
+	if err := config.DB.Model(&product).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update product"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Product updated successfully",
 		"product": product,
 	})
 }
