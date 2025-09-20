@@ -11,8 +11,9 @@ func ProductRoutes(r *gin.Engine) {
 	admin.Use(middlewares.AuthMiddleware(), middlewares.AdminMiddleware()) // protect admin routes
 	{
 		admin.POST("/products", controllers.CreateProductHandler)
-		admin.PUT("/products/:id", controllers.UpdateProductHandler)    // PUT /admin/products/:id
-		admin.DELETE("/products/:id", controllers.DeleteProductHandler) // DELETE /admin/products/:id
+		admin.PUT("/products/:id", controllers.UpdateProductHandler)               // PUT /admin/products/:id
+		admin.DELETE("/products/:id", controllers.DeleteProductHandler)            // DELETE /admin/products/:id
+		admin.POST("/products/:id/production", controllers.StartProductionHandler) // POST /admin/products/:id/production
 	}
 
 	// Public routes
