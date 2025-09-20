@@ -50,3 +50,54 @@ func StartProductionHandler(c *gin.Context) {
 		"production": production,
 	})
 }
+
+// UpdateProductionStatusHandler handles PUT /admin/products/:id/production/status
+func UpdateProductionStatusHandler(c *gin.Context) {
+	productID := c.Param("id")
+
+	var req struct {
+		Status string `json:"status" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Status is required"})
+		return
+	}
+
+	// Validate status
+	if req.Status != "pending" && req.Status != "in_progress" && req.Status != "completed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status"})
+		return
+	}
+
+	// Find production record for product
+	var production models.ProductProduction
+	if err := config.DB.Where("product_id = ?", productID).First(&production).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Production record not found"})
+		return
+	}
+
+	// If status is completed, set CompletedAt
+	if req.Status == "completed" {
+		now := time.Now()
+		production.CompletedAt = &now
+	}
+
+	production.Status = req.Status
+
+	if err := config.DB.Save(&production).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update production status"})
+		return
+	}
+
+	// Reload with Product preloaded
+	if err := config.DB.Preload("Product").First(&production, production.ID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch production with product"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":    "Production status updated successfully",
+		"production": production,
+	})
+}
