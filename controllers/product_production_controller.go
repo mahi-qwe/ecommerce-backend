@@ -120,3 +120,20 @@ func GetProductionDetailsHandler(c *gin.Context) {
 		"production": production,
 	})
 }
+
+// GetAllProductionsHandler handles GET /admin/products/production
+func GetAllProductionsHandler(c *gin.Context) {
+	var productions []models.ProductProduction
+
+	if err := config.DB.
+		Preload("Product").
+		Find(&productions).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch productions"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":      "success",
+		"productions": productions,
+	})
+}
