@@ -75,6 +75,7 @@ func BlockUserHandler(c *gin.Context) {
 	})
 }
 
+// UnblockUserHandler allows admin to unblock a user
 func UnblockUserHandler(c *gin.Context) {
 	userID := c.Param("id")
 
