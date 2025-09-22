@@ -91,3 +91,48 @@ func UnblockUserHandler(c *gin.Context) {
 		"message": "User unblocked successfully",
 	})
 }
+
+// GetAllUsersHandler - fetch all users
+func GetAllUsersHandler(c *gin.Context) {
+	var users []models.User
+
+	if err := config.DB.Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"users": users})
+}
+
+// GetUserByIDHandler - fetch a single user by ID
+func GetUserByIDHandler(c *gin.Context) {
+	id := c.Param("id")
+	var user models.User
+
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
+}
+
+// DeleteUserHandler - delete a user by ID
+func DeleteUserHandler(c *gin.Context) {
+	id := c.Param("id")
+	var user models.User
+
+	// check if user exists
+	if err := config.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// delete user
+	if err := config.DB.Delete(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}

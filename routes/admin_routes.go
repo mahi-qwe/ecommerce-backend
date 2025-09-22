@@ -13,5 +13,8 @@ func AdminRoutes(r *gin.Engine) {
 		admin.PUT("/users/:id", controllers.UpdateUserHandler)
 		admin.POST("/users/:id/block", controllers.BlockUserHandler)
 		admin.POST("/users/:id/unblock", controllers.UnblockUserHandler)
+		admin.GET("/users", controllers.GetAllUsersHandler)
+		admin.GET("/users/:id", controllers.GetUserByIDHandler)
+		admin.DELETE("/users/:id", controllers.DeleteUserHandler)
 	}
 }

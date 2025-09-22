@@ -32,7 +32,7 @@ func GenerateJWT(userID int, role string) (string, error) {
 	claims := jwt.MapClaims{
 		"userId": userID,
 		"role":   role,
-		"exp":    time.Now().Add(time.Minute * 30).Unix(), // 30 minutes
+		"exp":    time.Now().Add(time.Minute * 45).Unix(), // 45 minutes
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

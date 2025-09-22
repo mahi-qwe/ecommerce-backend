@@ -15,9 +15,9 @@ const Dashboard = () => {
     const fetchStats = async () => {
       try {
         const [usersRes, productsRes, ordersRes] = await Promise.all([
-          api.get("/users"),
+          api.get("/admin/users"),
           api.get("/products"),
-          api.get("/orders"),
+          // api.get("/admin/orders"),
         ]);
 
         setStats({
