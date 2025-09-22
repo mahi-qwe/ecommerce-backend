@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -15,6 +16,7 @@ func CreateProductHandler(c *gin.Context) {
 
 	// Bind JSON input
 	if err := c.ShouldBindJSON(&input); err != nil {
+		fmt.Println("Bind error:", err) // log exact error
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

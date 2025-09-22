@@ -115,7 +115,7 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	// Save hashed refresh token in DB
-	expiresAt := time.Now().Add(time.Minute * 5) // 5 minutes
+	expiresAt := time.Now().Add(time.Hour * 1) // 1 hour
 	if err := utils.SaveRefreshToken(config.DB, user.ID, hashedToken, expiresAt); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save refresh token"})
 		return
