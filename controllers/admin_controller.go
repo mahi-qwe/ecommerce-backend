@@ -14,10 +14,10 @@ func UpdateUserHandler(c *gin.Context) {
 	userID := c.Param("id")
 
 	var input struct {
-		FullName  string `json:"full_name"`
-		Role      string `json:"role"`
-		Address   string `json:"address"`
-		AvatarURL string `json:"avatar_url"`
+		FullName  string  `json:"full_name"`
+		Role      string  `json:"role"`
+		Address   string  `json:"address"`
+		AvatarURL *string `json:"avatar_url"` // ✅ pointer type
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -36,8 +36,8 @@ func UpdateUserHandler(c *gin.Context) {
 	if input.Address != "" {
 		updates["address"] = input.Address
 	}
-	if input.AvatarURL != "" {
-		updates["avatar_url"] = input.AvatarURL
+	if input.AvatarURL != nil {
+		updates["avatar_url"] = *input.AvatarURL
 	}
 
 	if len(updates) == 0 {
@@ -47,7 +47,9 @@ func UpdateUserHandler(c *gin.Context) {
 
 	updates["updated_at"] = time.Now()
 
-	if err := config.DB.Model(&models.User{}).Where("id = ?", userID).Updates(updates).Error; err != nil {
+	if err := config.DB.Model(&models.User{}).
+		Where("id = ?", userID).
+		Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
 		return
 	}

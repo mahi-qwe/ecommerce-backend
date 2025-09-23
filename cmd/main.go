@@ -9,6 +9,7 @@ import (
 	"github.com/mahi-qwe/ecommerce-backend/middlewares"
 	"github.com/mahi-qwe/ecommerce-backend/models"
 	"github.com/mahi-qwe/ecommerce-backend/routes"
+	"github.com/mahi-qwe/ecommerce-backend/seeders"
 )
 
 func main() {
@@ -22,6 +23,9 @@ func main() {
 
 	// Run migrations
 	models.Migrate()
+
+	// Seed initial data
+	seeders.Seed(config.DB)
 
 	r := gin.Default()
 

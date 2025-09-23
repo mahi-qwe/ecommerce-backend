@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
+import { MdDelete, MdModeEdit, MdBlock } from "react-icons/md";
+import { CgUnblock } from "react-icons/cg";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -252,30 +254,30 @@ export default function Users() {
                   <td className="px-4 py-2 border space-x-2">
                     <button
                       onClick={() => handleEdit(u)}
-                      className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                      className="px-1 py-1 bg-gray-300 rounded-full"
                     >
-                      Edit
+                      <MdModeEdit />
                     </button>
                     {u.is_blocked ? (
                       <button
                         onClick={() => handleUnblock(u.id)}
-                        className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                        className="px-1 py-1 bg-gray-300 rounded-full"
                       >
-                        Unblock
+                        <CgUnblock />
                       </button>
                     ) : (
                       <button
                         onClick={() => handleBlock(u.id)}
-                        className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
+                        className="px-1 py-1 bg-gray-300 rounded-full"
                       >
-                        Block
+                        <MdBlock />
                       </button>
                     )}
                     <button
                       onClick={() => handleDelete(u.id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                      className="px-1 py-1 bg-gray-300 rounded-full"
                     >
-                      Delete
+                      <MdDelete />
                     </button>
                   </td>
                 </tr>

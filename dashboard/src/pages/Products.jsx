@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api";
+import { MdDelete, MdModeEdit } from "react-icons/md";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -49,24 +50,35 @@ const Products = () => {
       const payload = {
         name: form.name,
         description: form.description,
-        price: parseFloat(form.price), // convert string → float
-        stock_quantity: parseInt(form.stock_quantity, 10), // convert string → int
+        price: parseFloat(form.price),
+        stock_quantity: parseInt(form.stock_quantity, 10),
         category: form.category,
         image_url: form.image_url,
       };
 
-      await api.post("/admin/products", payload, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // ensure token is attached
-        },
-      });
+      if (isEditing && currentId) {
+        // 🔹 Update existing product
+        await api.put(`/admin/products/${currentId}`, payload, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        alert("✅ Product updated successfully");
+      } else {
+        // 🔹 Create new product
+        await api.post("/admin/products", payload, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        alert("✅ Product created successfully");
+      }
 
-      alert("✅ Product created successfully");
       resetForm();
       fetchProducts();
     } catch (err) {
-      console.error("Add product error:", err);
-      alert("❌ Failed to create product");
+      console.error("Product submit error:", err);
+      alert("❌ Failed to save product");
     }
   };
 
@@ -221,6 +233,7 @@ const Products = () => {
             <th className="px-4 py-2 border">ID</th>
             <th className="px-4 py-2 border">Image</th>
             <th className="px-4 py-2 border">Name</th>
+            <th className="px-4 py-2 border">Description</th>
             <th className="px-4 py-2 border">Price</th>
             <th className="px-4 py-2 border">Stock</th>
             <th className="px-4 py-2 border">Category</th>
@@ -244,21 +257,22 @@ const Products = () => {
                   )}
                 </td>
                 <td className="px-4 py-2 border">{p.name}</td>
+                <td className="px-4 py-2 border">{p.description}</td>
                 <td className="px-4 py-2 border">₹{p.price}</td>
                 <td className="px-4 py-2 border">{p.stock_quantity}</td>
                 <td className="px-4 py-2 border">{p.category}</td>
                 <td className="px-4 py-2 border space-x-2">
                   <button
                     onClick={() => handleEdit(p)}
-                    className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                    className="px-1 py-1 bg-gray-300 rounded-full"
                   >
-                    Edit
+                    <MdModeEdit />
                   </button>
                   <button
                     onClick={() => handleDelete(p.id)}
-                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                    className="px-1 py-1 bg-gray-300 rounded-full"
                   >
-                    Delete
+                    <MdDelete />
                   </button>
                 </td>
               </tr>
