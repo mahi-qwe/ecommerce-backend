@@ -7,10 +7,10 @@ import (
 )
 
 func Seed(db *gorm.DB) {
-	log.Println("🌱 Starting database seeding...")
+	log.Println("Starting database seeding...")
 
 	SeedUsers(db)
 	SeedProducts(db)
 
-	log.Println("✅ Database seeding complete!")
+	log.Println("Database seeding complete!")
 }

@@ -97,6 +97,15 @@ func SeedUsers(db *gorm.DB) {
 			AvatarURL:    strPtr("https://i.pravatar.cc/150?img=10"),
 			Address:      "5 Broadway Street, Metropolis",
 		},
+		{
+			FullName:     "fake",
+			Email:        "fake@example.com",
+			PasswordHash: string(password),
+			Role:         "user",
+			IsVerified:   true,
+			AvatarURL:    strPtr("https://i.pravatar.cc/150?img=10"),
+			Address:      "fake address",
+		},
 	}
 
 	for _, u := range users {
@@ -109,6 +118,7 @@ func SeedUsers(db *gorm.DB) {
 	log.Println("✅ Users seeded")
 }
 
+// helper to get string pointer
 func strPtr(s string) *string {
 	return &s
 }

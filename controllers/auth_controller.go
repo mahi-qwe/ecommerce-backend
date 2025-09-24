@@ -17,7 +17,7 @@ func SignupHandler(c *gin.Context) {
 		FullName string `json:"full_name" binding:"required"`
 		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required,min=6"`
-		Address  string `json:"address"` // ✅ new field
+		Address  string `json:"address"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -43,7 +43,7 @@ func SignupHandler(c *gin.Context) {
 		FullName:     input.FullName,
 		Email:        input.Email,
 		PasswordHash: hashedPassword,
-		Address:      input.Address, // ✅ save address
+		Address:      input.Address,
 		Role:         "user",
 		IsVerified:   false, // Not verified yet
 		CreatedAt:    time.Now(),
@@ -300,35 +300,35 @@ func VerifyOTPHandler(c *gin.Context) {
 }
 
 // SendOTPHandler sends an OTP to user's email for given purpose
-func SendOTPHandler(c *gin.Context) {
-	var input struct {
-		Email   string `json:"email" binding:"required,email"`
-		Purpose string `json:"purpose" binding:"required"` // e.g., "signup", "reset_password"
-	}
+// func SendOTPHandler(c *gin.Context) {
+// 	var input struct {
+// 		Email   string `json:"email" binding:"required,email"`
+// 		Purpose string `json:"purpose" binding:"required"` // e.g., "signup", "reset_password"
+// 	}
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+// 	if err := c.ShouldBindJSON(&input); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	// Find user
-	var user models.User
-	if err := config.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
+// 	// Find user
+// 	var user models.User
+// 	if err := config.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+// 		return
+// 	}
 
-	// Generate OTP (already sends email inside)
-	if _, err := services.GenerateOTP(user.ID, user.Email, input.Purpose); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate/send OTP"})
-		return
-	}
+// 	// Generate OTP (already sends email inside)
+// 	if _, err := services.GenerateOTP(user.ID, user.Email, input.Purpose); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate/send OTP"})
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status":  "success",
-		"message": "OTP sent successfully",
-	})
-}
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"status":  "success",
+// 		"message": "OTP sent successfully",
+// 	})
+// }
 
 // ResendOTPHandler regenerates and resends an OTP for signup or password reset/forget password
 func ResendOTPHandler(c *gin.Context) {

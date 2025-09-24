@@ -9,7 +9,7 @@ import (
 	"github.com/mahi-qwe/ecommerce-backend/models"
 )
 
-// StartProductionHandler handles POST /admin/products/:id/production, also fetches the associated product
+// StartProductionHandler handles POST /admin/products/:id/production, also fetches/Preloads the associated product
 func StartProductionHandler(c *gin.Context) {
 	productID := c.Param("id")
 

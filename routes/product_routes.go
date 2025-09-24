@@ -11,18 +11,18 @@ func ProductRoutes(r *gin.Engine) {
 	admin.Use(middlewares.AuthMiddleware(), middlewares.AdminMiddleware()) // protect admin routes
 	{
 		admin.POST("/products", controllers.CreateProductHandler)
-		admin.PUT("/products/:id", controllers.UpdateProductHandler)                            // PUT /admin/products/:id
-		admin.DELETE("/products/:id", controllers.DeleteProductHandler)                         // DELETE /admin/products/:id
-		admin.POST("/products/:id/production", controllers.StartProductionHandler)              // POST /admin/products/:id/production
-		admin.PUT("/products/:id/production/status", controllers.UpdateProductionStatusHandler) // PUT /admin/products/:id/production/status
-		admin.GET("/products/:id/production", controllers.GetProductionDetailsHandler)
-		admin.GET("/products/production", controllers.GetAllProductionsHandler)
+		admin.PUT("/products/:id", controllers.UpdateProductHandler)
+		admin.DELETE("/products/:id", controllers.DeleteProductHandler)
+		admin.POST("/products/:id/production", controllers.StartProductionHandler)              // start production route
+		admin.PUT("/products/:id/production/status", controllers.UpdateProductionStatusHandler) // update production status route
+		admin.GET("/products/:id/production", controllers.GetProductionDetailsHandler)          // get production details route
+		admin.GET("/products/production", controllers.GetAllProductionsHandler)                 // get all productions route
 	}
 
 	// Public routes
 	public := r.Group("/products")
 	{
-		public.GET("", controllers.GetProductsHandler)        // GET /products
-		public.GET("/:id", controllers.GetProductByIDHandler) // GET /products/:id
+		public.GET("", controllers.GetProductsHandler)
+		public.GET("/:id", controllers.GetProductByIDHandler)
 	}
 }

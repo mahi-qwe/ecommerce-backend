@@ -205,7 +205,7 @@ export default function Users() {
       )}
 
       {/* Users Table */}
-      <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden bg-white shadow">
+      <table className="min-w-full border border-gray-300 rounded-lg overflow-hidden bg-white shadow">
         <thead className="bg-gray-100">
           <tr>
             <th className="px-4 py-2 border">ID</th>
