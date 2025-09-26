@@ -37,6 +37,7 @@ func main() {
 	routes.ProductRoutes(r)
 	routes.CartRoutes(r)
 	routes.WishlistRoutes(r)
+	routes.OrderRoutes(r)
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
