@@ -11,5 +11,6 @@ func OrderRoutes(r *gin.Engine) {
 	order.Use(middlewares.AuthMiddleware())
 	{
 		order.POST("", controllers.PlaceOrder) // place an order
+		order.GET("", controllers.GetUserOrders)
 	}
 }

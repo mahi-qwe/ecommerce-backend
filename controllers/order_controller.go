@@ -39,3 +39,26 @@ func PlaceOrder(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, order)
 }
+
+// GET /orders - user order history
+func GetUserOrders(c *gin.Context) {
+	uid, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userIDInt, ok := uid.(int)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID type"})
+		return
+	}
+
+	orders, err := services.GetUserOrders(config.DB, uint(userIDInt))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, orders)
+}
