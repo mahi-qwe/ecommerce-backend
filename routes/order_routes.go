@@ -12,10 +12,12 @@ func OrderRoutes(r *gin.Engine) {
 	{
 		order.POST("", controllers.PlaceOrder) // place an order
 		order.GET("", controllers.GetUserOrders)
+		order.GET("/:id", controllers.GetOrder) // GET /order/:id
 	}
 
 	adminOrders := r.Group("/admin/orders")
 	{
 		adminOrders.GET("", controllers.GetAllOrders) // GET /admin/orders
+		adminOrders.PUT("/:id", controllers.UpdateOrderStatusAdmin)
 	}
 }

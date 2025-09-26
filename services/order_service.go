@@ -197,3 +197,100 @@ func GetAllOrders(db *gorm.DB) ([]OrderResponse, error) {
 
 	return resp, nil
 }
+
+// Update order status (Admin)
+func UpdateOrderStatusAdmin(db *gorm.DB, orderID uint, newStatus string) (*OrderResponse, error) {
+	var order models.Order
+	if err := db.Preload("User").
+		Preload("OrderItems.Product").
+		First(&order, orderID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("order not found")
+		}
+		return nil, err
+	}
+
+	// Optional: validate status transitions
+	validStatuses := map[string]bool{
+		"pending":    true,
+		"processing": true,
+		"shipped":    true,
+		"delivered":  true,
+		"cancelled":  true,
+	}
+
+	if !validStatuses[newStatus] {
+		return nil, errors.New("invalid status")
+	}
+
+	order.Status = newStatus
+	order.UpdatedAt = time.Now()
+
+	if err := db.Save(&order).Error; err != nil {
+		return nil, err
+	}
+
+	// Build DTO response
+	items := make([]OrderItemResponse, 0)
+	for _, oi := range order.OrderItems {
+		items = append(items, OrderItemResponse{
+			ProductID: oi.ProductID,
+			Name:      oi.Product.Name,
+			Quantity:  oi.Quantity,
+			Price:     oi.Price,
+		})
+	}
+
+	resp := &OrderResponse{
+		ID:          order.ID,
+		TotalAmount: order.TotalAmount,
+		Address:     order.Address,
+		Status:      order.Status,
+		CreatedAt:   order.CreatedAt,
+		UserName:    order.User.FullName,
+		Items:       items,
+	}
+
+	return resp, nil
+}
+
+// Fetch single order for a specific user
+func GetOrderByID(db *gorm.DB, orderID uint, userID uint) (*OrderResponse, error) {
+	var order models.Order
+	if err := db.Preload("User").
+		Preload("OrderItems.Product").
+		First(&order, orderID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("order not found")
+		}
+		return nil, err
+	}
+
+	// Security: make sure user can only access their own orders
+	if order.UserID != userID {
+		return nil, errors.New("unauthorized access")
+	}
+
+	// Build DTO response
+	items := make([]OrderItemResponse, 0)
+	for _, oi := range order.OrderItems {
+		items = append(items, OrderItemResponse{
+			ProductID: oi.ProductID,
+			Name:      oi.Product.Name,
+			Quantity:  oi.Quantity,
+			Price:     oi.Price,
+		})
+	}
+
+	resp := &OrderResponse{
+		ID:          order.ID,
+		TotalAmount: order.TotalAmount,
+		Address:     order.Address,
+		Status:      order.Status,
+		CreatedAt:   order.CreatedAt,
+		UserName:    order.User.FullName,
+		Items:       items,
+	}
+
+	return resp, nil
+}
