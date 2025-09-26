@@ -7,13 +7,12 @@ import (
 )
 
 type OrderItem struct {
-	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	OrderID   uint      `gorm:"not null" json:"order_id"`
-	ProductID uint      `gorm:"not null" json:"product_id"`
-	Quantity  int       `gorm:"not null" json:"quantity"`
-	Price     float64   `gorm:"not null" json:"price"`
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	// UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
+	OrderID   uint           `gorm:"not null" json:"order_id"`
+	ProductID uint           `gorm:"not null" json:"product_id"`
+	Quantity  int            `gorm:"not null" json:"quantity"`
+	Price     float64        `gorm:"not null" json:"price"`
+	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 
 	// Relations

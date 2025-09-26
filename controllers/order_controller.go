@@ -131,3 +131,32 @@ func GetOrder(c *gin.Context) {
 
 	c.JSON(http.StatusOK, order)
 }
+
+// DELETE /order/:id - Soft delete a user's order
+func DeleteOrder(c *gin.Context) {
+	idParam := c.Param("id")
+	orderID, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})
+		return
+	}
+
+	uid, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	userIDInt, ok := uid.(int)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user ID type"})
+		return
+	}
+	userID := uint(userIDInt)
+
+	if err := services.DeleteOrder(config.DB, uint(orderID), userID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "order deleted successfully"})
+}

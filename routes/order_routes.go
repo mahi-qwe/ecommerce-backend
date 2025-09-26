@@ -12,7 +12,8 @@ func OrderRoutes(r *gin.Engine) {
 	{
 		order.POST("", controllers.PlaceOrder) // place an order
 		order.GET("", controllers.GetUserOrders)
-		order.GET("/:id", controllers.GetOrder) // GET /order/:id
+		order.GET("/:id", controllers.GetOrder)       // GET /order/:id
+		order.DELETE("/:id", controllers.DeleteOrder) // DELETE /order/:id
 	}
 
 	adminOrders := r.Group("/admin/orders")

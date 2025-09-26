@@ -216,7 +216,6 @@ func UpdateOrderStatusAdmin(db *gorm.DB, orderID uint, newStatus string) (*Order
 		"processing": true,
 		"shipped":    true,
 		"delivered":  true,
-		"cancelled":  true,
 	}
 
 	if !validStatuses[newStatus] {
@@ -293,4 +292,39 @@ func GetOrderByID(db *gorm.DB, orderID uint, userID uint) (*OrderResponse, error
 	}
 
 	return resp, nil
+}
+
+// Soft delete an order (user can delete their own order)
+func DeleteOrder(db *gorm.DB, orderID uint, userID uint) error {
+	var order models.Order
+	if err := db.Preload("OrderItems").First(&order, orderID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("order not found")
+		}
+		return err
+	}
+
+	// Ensure the logged-in user owns this order
+	if order.UserID != userID {
+		return errors.New("unauthorized access")
+	}
+
+	// Soft delete order and cascade delete items
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		// Soft delete order items
+		if err := tx.Where("order_id = ?", order.ID).Delete(&models.OrderItem{}).Error; err != nil {
+			return err
+		}
+
+		// Soft delete order
+		if err := tx.Delete(&order).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
