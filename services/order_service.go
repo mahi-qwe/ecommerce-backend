@@ -161,3 +161,39 @@ func GetUserOrders(db *gorm.DB, userID uint) ([]OrderResponse, error) {
 
 	return resp, nil
 }
+
+// Returns all orders for admin
+func GetAllOrders(db *gorm.DB) ([]OrderResponse, error) {
+	var orders []models.Order
+	if err := db.Preload("User").
+		Preload("OrderItems.Product").
+		Order("created_at desc").
+		Find(&orders).Error; err != nil {
+		return nil, err
+	}
+
+	var resp []OrderResponse
+	for _, order := range orders {
+		items := make([]OrderItemResponse, 0)
+		for _, oi := range order.OrderItems {
+			items = append(items, OrderItemResponse{
+				ProductID: oi.ProductID,
+				Name:      oi.Product.Name,
+				Quantity:  oi.Quantity,
+				Price:     oi.Price,
+			})
+		}
+
+		resp = append(resp, OrderResponse{
+			ID:          order.ID,
+			TotalAmount: order.TotalAmount,
+			Address:     order.Address,
+			Status:      order.Status,
+			CreatedAt:   order.CreatedAt,
+			UserName:    order.User.FullName,
+			Items:       items,
+		})
+	}
+
+	return resp, nil
+}

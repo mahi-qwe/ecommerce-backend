@@ -62,3 +62,14 @@ func GetUserOrders(c *gin.Context) {
 
 	c.JSON(http.StatusOK, orders)
 }
+
+// GET /admin/orders - Admin view all orders
+func GetAllOrders(c *gin.Context) {
+	orders, err := services.GetAllOrders(config.DB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, orders)
+}
