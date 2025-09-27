@@ -19,7 +19,7 @@ export default function Dashboard() {
         const [usersRes, productsRes, ordersRes] = await Promise.all([
           api.get("/admin/users"),
           api.get("/products"),
-          // api.get("/admin/orders"),
+          api.get("/admin/orders"),
         ]);
 
         // Filter to only include customers (exclude admins)
@@ -30,7 +30,7 @@ export default function Dashboard() {
         setStats({
           users: customers.length,
           products: productsRes.data.products.length,
-          // orders: ordersRes.data.orders.length,
+          orders: ordersRes.data.length,
         });
 
         // Store all customer data for the table
@@ -67,12 +67,12 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-medium text-gray-600">Total Orders</h2>
           <p className="text-3xl font-bold text-purple-600 mt-2">
             {stats.orders}
           </p>
-        </div> */}
+        </div>
       </div>
 
       {/* All Users List */}

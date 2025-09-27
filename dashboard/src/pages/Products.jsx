@@ -4,8 +4,12 @@ import { MdDelete, MdModeEdit } from "react-icons/md";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -24,6 +28,7 @@ const Products = () => {
     try {
       const res = await api.get("/products"); // public route
       setProducts(res.data.products);
+      setFilteredProducts(res.data.products); // initially show all
     } catch (err) {
       console.error(err);
       setError("Failed to load products");
@@ -57,19 +62,13 @@ const Products = () => {
       };
 
       if (isEditing && currentId) {
-        // 🔹 Update existing product
         await api.put(`/admin/products/${currentId}`, payload, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         alert("✅ Product updated successfully");
       } else {
-        // 🔹 Create new product
         await api.post("/admin/products", payload, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         alert("✅ Product created successfully");
       }
@@ -104,6 +103,7 @@ const Products = () => {
     try {
       await api.delete(`/admin/products/${id}`);
       setProducts(products.filter((p) => p.id !== id));
+      setFilteredProducts(filteredProducts.filter((p) => p.id !== id));
     } catch (err) {
       console.error(err);
       alert("Failed to delete product");
@@ -125,6 +125,18 @@ const Products = () => {
     setShowForm(false);
   };
 
+  // Handle category filter
+  const handleCategoryChange = (e) => {
+    const category = e.target.value;
+    setSelectedCategory(category);
+
+    if (category === "All") {
+      setFilteredProducts(products);
+    } else {
+      setFilteredProducts(products.filter((p) => p.category === category));
+    }
+  };
+
   if (loading) return <p className="p-4">Loading...</p>;
   if (error) return <p className="p-4 text-red-500">{error}</p>;
 
@@ -144,7 +156,24 @@ const Products = () => {
         </button>
       </div>
 
-      {/* Add/Edit Form - only shown when showForm is true */}
+      {/* Category Filter */}
+      <div className="mb-4">
+        <label className="mr-2 font-medium">Filter by Category:</label>
+        <select
+          value={selectedCategory}
+          onChange={handleCategoryChange}
+          className="border p-2 rounded"
+        >
+          <option value="All">All</option>
+          {[...new Set(products.map((p) => p.category))].map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Add/Edit Form */}
       {showForm && (
         <form
           onSubmit={handleSubmit}
@@ -200,7 +229,6 @@ const Products = () => {
             placeholder="Image URL"
             className="w-full p-2 border rounded"
           />
-          {/* Preview */}
           {form.image_url && (
             <img
               src={form.image_url}
@@ -241,8 +269,8 @@ const Products = () => {
           </tr>
         </thead>
         <tbody>
-          {products.length > 0 ? (
-            products.map((p) => (
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((p) => (
               <tr key={p.id} className="text-center">
                 <td className="px-4 py-2 border">{p.id}</td>
                 <td className="px-4 py-2 border">
@@ -279,7 +307,7 @@ const Products = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="7" className="text-center py-4 text-gray-500 italic">
+              <td colSpan="8" className="text-center py-4 text-gray-500 italic">
                 No products found
               </td>
             </tr>
