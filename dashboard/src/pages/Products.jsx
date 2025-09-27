@@ -4,7 +4,7 @@ import { MdDelete, MdModeEdit } from "react-icons/md";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [categories, setCategories] = useState([]); // ✅ keep all categories
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const [loading, setLoading] = useState(true);
@@ -23,12 +23,22 @@ const Products = () => {
     image_url: "",
   });
 
-  // Fetch products
-  const fetchProducts = async () => {
+  // ✅ Fetch products (with optional category filter)
+  const fetchProducts = async (category = "All") => {
     try {
-      const res = await api.get("/products"); // public route
+      const res = await api.get("/products", {
+        params: category !== "All" ? { category } : {},
+      });
+
       setProducts(res.data.products);
-      setFilteredProducts(res.data.products); // initially show all
+
+      // ✅ build categories only once (when fetching all)
+      if (category === "All") {
+        const uniqueCats = [
+          ...new Set(res.data.products.map((p) => p.category)),
+        ];
+        setCategories(uniqueCats);
+      }
     } catch (err) {
       console.error(err);
       setError("Failed to load products");
@@ -41,13 +51,13 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  // Handle input change
+  // ✅ Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
-  // Handle add/update product
+  // ✅ Handle add/update product
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -81,7 +91,7 @@ const Products = () => {
     }
   };
 
-  // Handle edit
+  // ✅ Handle edit
   const handleEdit = (product) => {
     setForm({
       name: product.name,
@@ -96,21 +106,20 @@ const Products = () => {
     setShowForm(true);
   };
 
-  // Handle delete
+  // ✅ Handle delete
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?"))
       return;
     try {
       await api.delete(`/admin/products/${id}`);
       setProducts(products.filter((p) => p.id !== id));
-      setFilteredProducts(filteredProducts.filter((p) => p.id !== id));
     } catch (err) {
       console.error(err);
       alert("Failed to delete product");
     }
   };
 
-  // Reset form
+  // ✅ Reset form
   const resetForm = () => {
     setForm({
       name: "",
@@ -125,16 +134,11 @@ const Products = () => {
     setShowForm(false);
   };
 
-  // Handle category filter
+  // ✅ Handle category filter
   const handleCategoryChange = (e) => {
     const category = e.target.value;
     setSelectedCategory(category);
-
-    if (category === "All") {
-      setFilteredProducts(products);
-    } else {
-      setFilteredProducts(products.filter((p) => p.category === category));
-    }
+    fetchProducts(category);
   };
 
   if (loading) return <p className="p-4">Loading...</p>;
@@ -165,7 +169,7 @@ const Products = () => {
           className="border p-2 rounded"
         >
           <option value="All">All</option>
-          {[...new Set(products.map((p) => p.category))].map((cat) => (
+          {categories.map((cat) => (
             <option key={cat} value={cat}>
               {cat}
             </option>
@@ -269,8 +273,8 @@ const Products = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredProducts.length > 0 ? (
-            filteredProducts.map((p) => (
+          {products.length > 0 ? (
+            products.map((p) => (
               <tr key={p.id} className="text-center">
                 <td className="px-4 py-2 border">{p.id}</td>
                 <td className="px-4 py-2 border">

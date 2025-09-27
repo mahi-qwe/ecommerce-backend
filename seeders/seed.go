@@ -11,6 +11,7 @@ func Seed(db *gorm.DB) {
 
 	SeedUsers(db)
 	SeedProducts(db)
+	SeedOrders(db)
 
 	log.Println("Database seeding complete!")
 }

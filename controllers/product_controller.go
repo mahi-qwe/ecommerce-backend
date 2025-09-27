@@ -37,7 +37,16 @@ func CreateProductHandler(c *gin.Context) {
 func GetProductsHandler(c *gin.Context) {
 	var products []models.Product
 
-	if err := config.DB.Find(&products).Error; err != nil {
+	// read query parameter
+	category := c.Query("category")
+
+	query := config.DB
+
+	if category != "" && category != "All" {
+		query = query.Where("category = ?", category)
+	}
+
+	if err := query.Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch products"})
 		return
 	}

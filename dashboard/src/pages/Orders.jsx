@@ -6,14 +6,22 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [allStatuses, setAllStatuses] = useState([]); // ✅ master list of all statuses
 
-  const statusOptions = ["pending", "processing", "shipped", "delivered"];
-
-  // Fetch all orders
-  const fetchOrders = async () => {
+  // Fetch orders from backend with optional status filter
+  const fetchOrders = async (status = "all") => {
+    setLoading(true);
     try {
-      const res = await api.get("/admin/orders");
+      const res = await api.get("/admin/orders", {
+        params: status !== "all" ? { status } : {},
+      });
       setOrders(res.data);
+
+      // ✅ Build master list only when fetching ALL
+      if (status === "all") {
+        const uniqueStatuses = [...new Set(res.data.map((o) => o.status))];
+        setAllStatuses(uniqueStatuses);
+      }
     } catch (err) {
       console.error(err);
       setError("Failed to load orders");
@@ -22,9 +30,10 @@ export default function Orders() {
     }
   };
 
+  // Fetch orders when component mounts or filterStatus changes
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    fetchOrders(filterStatus);
+  }, [filterStatus]);
 
   // Handle status update
   const handleStatusChange = async (id, newStatus) => {
@@ -33,7 +42,6 @@ export default function Orders() {
     try {
       const res = await api.put(`/admin/orders/${id}`, { status: newStatus });
 
-      // Update local state
       setOrders(
         orders.map((o) => (o.id === id ? { ...o, status: res.data.status } : o))
       );
@@ -44,12 +52,6 @@ export default function Orders() {
       alert("❌ Failed to update order");
     }
   };
-
-  // Apply filtering
-  const filteredOrders =
-    filterStatus === "all"
-      ? orders
-      : orders.filter((o) => o.status === filterStatus);
 
   if (loading) return <p className="p-4">Loading...</p>;
   if (error) return <p className="p-4 text-red-500">{error}</p>;
@@ -67,7 +69,7 @@ export default function Orders() {
           className="p-2 border rounded"
         >
           <option value="all">All</option>
-          {statusOptions.map((status) => (
+          {allStatuses.map((status) => (
             <option key={status} value={status}>
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </option>
@@ -90,8 +92,8 @@ export default function Orders() {
           </tr>
         </thead>
         <tbody>
-          {filteredOrders.length > 0 ? (
-            filteredOrders.map((o) => (
+          {orders.length > 0 ? (
+            orders.map((o) => (
               <tr key={o.id} className="text-center">
                 <td className="px-4 py-2 border">{o.id}</td>
                 <td className="px-4 py-2 border">{o.user_name}</td>
@@ -130,7 +132,7 @@ export default function Orders() {
                     onChange={(e) => handleStatusChange(o.id, e.target.value)}
                     className="p-1 border rounded"
                   >
-                    {statusOptions.map((status) => (
+                    {allStatuses.map((status) => (
                       <option key={status} value={status}>
                         {status}
                       </option>

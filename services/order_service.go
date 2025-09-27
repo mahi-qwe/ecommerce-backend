@@ -163,12 +163,15 @@ func GetUserOrders(db *gorm.DB, userID uint) ([]OrderResponse, error) {
 }
 
 // Returns all orders for admin
-func GetAllOrders(db *gorm.DB) ([]OrderResponse, error) {
+func GetAllOrders(db *gorm.DB, status string) ([]OrderResponse, error) {
 	var orders []models.Order
-	if err := db.Preload("User").
-		Preload("OrderItems.Product").
-		Order("created_at desc").
-		Find(&orders).Error; err != nil {
+	query := db.Preload("User").Preload("OrderItems.Product").Order("created_at desc")
+
+	if status != "" && status != "all" {
+		query = query.Where("status = ?", status)
+	}
+
+	if err := query.Find(&orders).Error; err != nil {
 		return nil, err
 	}
 
