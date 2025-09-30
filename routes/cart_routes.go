@@ -12,7 +12,7 @@ func CartRoutes(r *gin.Engine) {
 	{
 		cart.POST("/", controllers.AddToCart)
 		cart.GET("/", controllers.GetCartItems)
-		cart.PUT("/:id", controllers.UpdateCartItem)
+		cart.PUT("/:id", controllers.UpdateCartItem) // used to change quantity of a product in cart, the /:id is cart item id not product id.
 		cart.DELETE("/:id", controllers.DeleteCartItem)
 	}
 }

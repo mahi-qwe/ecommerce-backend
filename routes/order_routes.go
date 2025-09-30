@@ -17,6 +17,7 @@ func OrderRoutes(r *gin.Engine) {
 	}
 
 	adminOrders := r.Group("/admin/orders")
+	adminOrders.Use(middlewares.AuthMiddleware(), middlewares.AdminMiddleware())
 	{
 		adminOrders.GET("", controllers.GetAllOrders) // GET /admin/orders
 		adminOrders.PUT("/:id", controllers.UpdateOrderStatusAdmin)

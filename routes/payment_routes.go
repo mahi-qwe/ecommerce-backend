@@ -11,6 +11,11 @@ func PaymentRoutes(r *gin.Engine) {
 	payments.Use(middlewares.AuthMiddleware())
 	{
 		payments.POST("/create", controllers.CreatePaymentIntent)
+	}
+
+	adminPayments := r.Group("/admin/payments")
+	adminPayments.Use(middlewares.AuthMiddleware(), middlewares.AdminMiddleware())
+	{
 		payments.PUT("/:payment_id/update", controllers.UpdatePaymentStatus)
 	}
 }
