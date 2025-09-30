@@ -40,7 +40,7 @@ func CreateOrder(db *gorm.DB, userID uint, address string) (*OrderResponse, erro
 	order := models.Order{
 		UserID:      userID,
 		Address:     address,
-		Status:      "pending",
+		Status:      "pending", // ✅ waiting for payment
 		TotalAmount: 0,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -53,18 +53,8 @@ func CreateOrder(db *gorm.DB, userID uint, address string) (*OrderResponse, erro
 
 	totalAmount := 0.0
 
+	// Add items to order (but don't deduct stock yet)
 	for _, item := range cartItems {
-		if item.Product.StockQuantity < item.Quantity {
-			tx.Rollback()
-			return nil, errors.New("insufficient stock for product: " + item.Product.Name)
-		}
-
-		item.Product.StockQuantity -= item.Quantity
-		if err := tx.Save(&item.Product).Error; err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-
 		itemTotal := float64(item.Quantity) * item.Product.Price
 		totalAmount += itemTotal
 
@@ -82,20 +72,16 @@ func CreateOrder(db *gorm.DB, userID uint, address string) (*OrderResponse, erro
 		}
 	}
 
+	// Save total
 	order.TotalAmount = totalAmount
 	if err := tx.Save(&order).Error; err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
-	if err := tx.Where("user_id = ?", userID).Delete(&models.CartItem{}).Error; err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
 	tx.Commit()
 
-	// Fetch user and order items for response
+	// Fetch full order for response
 	var fullOrder models.Order
 	if err := db.Preload("User").Preload("OrderItems.Product").First(&fullOrder, order.ID).Error; err != nil {
 		return nil, err

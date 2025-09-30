@@ -18,6 +18,8 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	// stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
+
 	// Connect DB
 	config.ConnectDatabase()
 
@@ -38,6 +40,7 @@ func main() {
 	routes.CartRoutes(r)
 	routes.WishlistRoutes(r)
 	routes.OrderRoutes(r)
+	routes.PaymentRoutes(r)
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{

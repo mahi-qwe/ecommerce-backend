@@ -17,6 +17,7 @@ func Migrate() {
 		&Order{},
 		&OrderItem{},
 		&RefreshToken{},
+		&Payment{},
 	)
 
 	if err != nil {
